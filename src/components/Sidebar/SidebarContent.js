@@ -1,9 +1,11 @@
 import React from "react";
+import { useState } from "react";
 import routes from "../../routes/sidebar";
 import { NavLink, Route } from "react-router-dom";
 import * as Icons from "../../icons";
 import SidebarSubmenu from "./SidebarSubmenu";
-import { Button } from "@windmill/react-ui";
+// import { Avatar, Dropdown, DropdownItem } from "@windmill/react-ui";
+import { LogOut } from "lucide-react";
 
 function Icon({ icon, ...props }) {
   const Icon = Icons[icon];
@@ -11,13 +13,18 @@ function Icon({ icon, ...props }) {
 }
 
 function SidebarContent() {
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  function handleProfileClick() {
+    setIsProfileMenuOpen(!isProfileMenuOpen);
+  }
   return (
-    <div className="py-4 text-gray-500 dark:text-gray-400">
+    <div className="py-4 h-full relative text-gray-500 dark:text-gray-400">
       <NavLink
         to="/app/dashboard"
         className="ml-6 text-lg font-bold text-gray-800 dark:text-gray-200"
       >
-        Windmill
+        Dev Beez
       </NavLink>
       <ul className="mt-6">
         {routes.map((route) =>
@@ -48,13 +55,41 @@ function SidebarContent() {
           )
         )}
       </ul>
-      <div className="px-6 my-6">
-        <Button>
-          Create account
-          <span className="ml-2" aria-hidden="true">
-            +
-          </span>
-        </Button>
+      {/* <!-- Profile menu --> */}
+      <div className="absolute bottom-0 w-full px-6 pb-4">
+        <button
+          className="rounded-md flex justify-center text-sm py-2 w-full mb-5 text-white bg-red-500 hover:bg-red-600"
+          onClick={handleProfileClick}
+          aria-label="Account"
+          aria-haspopup="true"
+        >
+          <LogOut className="w-4 h-4 mr-3" aria-hidden="true" />
+          <span>Log out</span>
+        </button>
+        {/* <Dropdown
+              align="right"
+              isOpen={isProfileMenuOpen}
+              onClose={() => setIsProfileMenuOpen(false)}
+            >
+              <DropdownItem onClick={() => {}}>
+                <OutlinePersonIcon
+                  className="w-4 h-4 mr-3"
+                  aria-hidden="true"
+                />
+                <span>Profile</span>
+              </DropdownItem>
+              <DropdownItem onClick={() => {}}>
+                <OutlineCogIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                <span>Settings</span>
+              </DropdownItem>
+              <DropdownItem onClick={() => alert("Log out!")}>
+                <OutlineLogoutIcon
+                  className="w-4 h-4 mr-3"
+                  aria-hidden="true"
+                />
+                <span>Log out</span>
+              </DropdownItem>
+            </Dropdown> */}
       </div>
     </div>
   );
