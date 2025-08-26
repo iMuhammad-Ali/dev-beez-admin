@@ -6,6 +6,8 @@ import * as Icons from "../../icons";
 import SidebarSubmenu from "./SidebarSubmenu";
 // import { Avatar, Dropdown, DropdownItem } from "@windmill/react-ui";
 import { LogOut } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { signOut } from "./../../store/authThunk";
 
 function Icon({ icon, ...props }) {
   const Icon = Icons[icon];
@@ -15,9 +17,10 @@ function Icon({ icon, ...props }) {
 function SidebarContent() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-  function handleProfileClick() {
-    setIsProfileMenuOpen(!isProfileMenuOpen);
-  }
+  // function handleProfileClick() {
+  //   setIsProfileMenuOpen(!isProfileMenuOpen);
+  // }
+  const dispatch = useDispatch();
   return (
     <div className="py-4 h-full relative text-gray-500 dark:text-gray-400">
       <NavLink
@@ -59,7 +62,7 @@ function SidebarContent() {
       <div className="absolute bottom-0 w-full px-6 pb-4">
         <button
           className="rounded-md flex justify-center text-sm py-2 w-full mb-5 text-white bg-red-500 hover:bg-red-600"
-          onClick={handleProfileClick}
+          onClick={() => dispatch(signOut())}
           aria-label="Account"
           aria-haspopup="true"
         >

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import CTA from "../components/CTA";
+// import CTA from "../components/CTA";
 import InfoCard from "../components/Cards/InfoCard";
 import ChartCard from "../components/Chart/ChartCard";
 import { Doughnut, Line } from "react-chartjs-2";
@@ -8,7 +8,8 @@ import ChartLegend from "../components/Chart/ChartLegend";
 import PageTitle from "../components/Typography/PageTitle";
 import { ChatIcon, CartIcon, MoneyIcon, PeopleIcon } from "../icons";
 import RoundIcon from "../components/RoundIcon";
-import response from "../utils/demo/tableData";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchClients, deleteClient } from "../store/clientThunk";
 import {
   TableBody,
   TableContainer,
@@ -33,10 +34,13 @@ import {
 
 function Dashboard() {
   const [page, setPage] = useState(1);
-  const [data, setData] = useState([]);
+  const clients = useSelector((s) => s.client.items || []);
+  const loading = useSelector((s) => s.client.loading);
+  const [dataa, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modelMode, setModelMode] = useState(null); // "detail" or "delete"
+  const dispatch = useDispatch();
 
   function openModal(user, mode) {
     setSelectedUser(user);
@@ -51,7 +55,7 @@ function Dashboard() {
 
   // pagination setup
   const resultsPerPage = 10;
-  const totalResults = response.length;
+  const totalResults = clients.length;
 
   // pagination change control
   function onPageChange(p) {
@@ -61,14 +65,17 @@ function Dashboard() {
   // on page change, load new sliced data
   // here you would make another server request for new data
   useEffect(() => {
-    setData(response.slice((page - 1) * resultsPerPage, page * resultsPerPage));
-  }, [page]);
+    setData(clients.slice((page - 1) * resultsPerPage, page * resultsPerPage));
+  }, [page, clients]);
 
+  useEffect(() => {
+    dispatch(fetchClients());
+  }, [dispatch]);
   return (
     <>
       <PageTitle>Dashboard</PageTitle>
 
-      <CTA />
+      {/* <CTA /> */}
 
       {/* <!-- Cards --> */}
       <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
@@ -121,50 +128,55 @@ function Dashboard() {
             </tr>
           </TableHeader>
           <TableBody>
-            {data.map((user, i) => (
-              <TableRow key={i}>
-                <TableCell>
-                  <div className="flex items-center text-sm">
-                    <Avatar
-                      className="hidden mr-3 md:block"
-                      src={user.avatar}
-                      alt="User image"
-                    />
-                    <div>
-                      <p className="font-semibold">{user.name}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {user.job}
-                      </p>
+            {clients
+              .slice((page - 1) * resultsPerPage, page * resultsPerPage)
+              .map((user, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <div className="flex items-center text-sm">
+                      <Avatar
+                        className="hidden mr-3 md:block"
+                        src={user.avatar}
+                        alt="User image"
+                      />
+                      <div>
+                        <p className="font-semibold">{user.name}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {user.job}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">$ {user.amount}</span>
-                </TableCell>
-                <TableCell>
-                  <Badge type={user.status}>{user.status}</Badge>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">
-                    {new Date(user.date).toLocaleDateString()}
-                  </span>
-                </TableCell>
-                <TableCell className="flex items-center space-x-2">
-                  <Button size="small" onClick={() => openModal(user)}>
-                    Detail
-                  </Button>
-                  <Button
-                    size="small"
-                    aria-label="Delete"
-                    style={{ backgroundColor: "#ef4444" }}
-                    className="text-white hover:bg-red-600"
-                    onClick={() => openModal(user, "delete")}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">$ {user.amount}</span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge type={user.status}>{user.status}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">
+                      {new Date(user.date).toLocaleDateString()}
+                    </span>
+                  </TableCell>
+                  <TableCell className="flex items-center space-x-2">
+                    <Button
+                      size="small"
+                      onClick={() => openModal(user, "detail")}
+                    >
+                      Detail
+                    </Button>
+                    <Button
+                      size="small"
+                      aria-label="Delete"
+                      style={{ backgroundColor: "#ef4444" }}
+                      className="text-white hover:bg-red-600"
+                      onClick={() => openModal(user, "delete")}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
         <TableFooter>
@@ -185,7 +197,10 @@ function Dashboard() {
         body={
           modelMode === "delete" ? (
             <div>
-              <p>Are you sure you want to delete? This can not be undone.</p>
+              <p>
+                Are you sure you want to delete{" "}
+                <strong>{selectedUser?.name}</strong>?
+              </p>
             </div>
           ) : selectedUser ? (
             <div>
@@ -198,7 +213,18 @@ function Dashboard() {
             <div>No details</div>
           )
         }
-        mode={modelMode}
+        onConfirm={async () => {
+          if (modelMode === "delete" && selectedUser) {
+            await dispatch(deleteClient(selectedUser.id));
+            closeModal();
+            // ensure page index stays valid
+            if ((page - 1) * resultsPerPage >= clients.length - 1 && page > 1) {
+              setPage((p) => p - 1);
+            }
+          } else {
+            closeModal();
+          }
+        }}
       />
 
       <PageTitle>Charts</PageTitle>

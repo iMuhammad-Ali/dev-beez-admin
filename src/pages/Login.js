@@ -1,14 +1,35 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { useState } from "react";
 
 import ImageLight from "../assets/img/login-office.jpeg";
 import ImageDark from "../assets/img/login-office-dark.jpeg";
 import { Label, Input, Button } from "@windmill/react-ui";
 import { Eye, EyeOff } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { signIn } from "../store/authThunk";
 
 function Login() {
   const [show, setShow] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const history = useHistory();
+  const { status, error, user } = useSelector((s) => s.auth);
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await dispatch(signIn({ email, password })).unwrap();
+    } catch (err) {
+      // error is handled in slice state
+    }
+  };
+
+  if (user) {
+    history.push("/app");
+  }
+
   return (
     <div className="flex items-center min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
       <div className="flex-1 h-full max-w-4xl mx-auto overflow-hidden bg-white rounded-lg shadow-xl dark:bg-gray-800">
@@ -28,7 +49,7 @@ function Login() {
             />
           </div>
           <main className="flex items-center justify-center p-6 sm:p-12 md:w-1/2">
-            <div className="w-full">
+            <form className="w-full" onSubmit={onSubmit}>
               <h1 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">
                 Login
               </h1>
@@ -38,6 +59,8 @@ function Login() {
                   className="mt-1"
                   type="email"
                   placeholder="john@doe.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </Label>
 
@@ -49,8 +72,11 @@ function Login() {
                     type={show ? "text" : "password"}
                     placeholder="***************"
                     autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                   <button
+                    type="button"
                     className="absolute inset-y-0 right-0 p-0 focus:outline-none mr-3 bg-transparent"
                     aria-label={show ? "Hide password" : "Show password"}
                     onClick={() => setShow(!show)}
@@ -63,11 +89,18 @@ function Login() {
                   </button>
                 </div>
               </Label>
-
-              <Button className="mt-4" block tag={Link} to="/app">
-                Log in
+              {error && (
+                <div className="mt-2 text-sm text-red-600">{error}</div>
+              )}
+              <Button
+                className="mt-4"
+                block
+                type="submit"
+                disabled={status === "loading" ? true : false}
+              >
+                {status === "loading" ? "Loading..." : "Log in"}
               </Button>
-            </div>
+            </form>
           </main>
         </div>
       </div>
