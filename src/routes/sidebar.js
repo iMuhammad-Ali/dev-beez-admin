@@ -5,11 +5,22 @@
  * If you're looking to actual Router routes, go to
  * `routes/index.js`
  */
+import { User, Home, Phone } from "lucide-react";
 const routes = [
   {
     path: "/app/dashboard", // the url
-    icon: "HomeIcon", // the component being exported from icons/index.js
     name: "Dashboard", // name that appear in Sidebar
+    icon: Home,
+  },
+  {
+    path: "/app/book-service", // the url
+    name: "Book Service", // name that appear in Sidebar
+    icon: User,
+  },
+  {
+    path: "/app/schedule-call", // the url
+    name: "Schedule Call", // name that appear in Sidebar
+    icon: Phone,
   },
 ];
 

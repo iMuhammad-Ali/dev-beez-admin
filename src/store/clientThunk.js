@@ -12,9 +12,9 @@ import {
 // One-off fetch (no realtime)
 export const fetchClients = createAsyncThunk(
   "clients/fetch",
-  async (_, { rejectWithValue }) => {
+  async ({ table }, { rejectWithValue }) => {
     try {
-      const q = query(collection(db, "clients"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, table), orderBy("createdAt", "desc"));
       const snap = await getDocs(q);
       return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     } catch (e) {

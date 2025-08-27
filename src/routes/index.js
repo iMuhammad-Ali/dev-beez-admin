@@ -2,6 +2,8 @@ import { lazy } from "react";
 
 // use lazy for better code splitting, a.k.a. load faster
 const Dashboard = lazy(() => import("../pages/Dashboard"));
+const Book_Service = lazy(() => import("../pages/BookService/index"));
+const Schedule_Call = lazy(() => import("../pages/ScheduleCall/index"));
 
 /**
  * ⚠ These are internal routes!
@@ -17,6 +19,14 @@ const routes = [
   {
     path: "/dashboard", // the url
     component: Dashboard, // view rendered
+  },
+  {
+    path: "/book-service", // the url
+    component: Book_Service, // view rendered
+  },
+  {
+    path: "/schedule-call", // the url
+    component: Schedule_Call, // view rendered
   },
 ];
 

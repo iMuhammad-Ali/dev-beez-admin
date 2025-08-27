@@ -6,7 +6,7 @@ import ImageLight from "../assets/img/login-office.jpeg";
 import ImageDark from "../assets/img/login-office-dark.jpeg";
 import { Label, Input, Button } from "@windmill/react-ui";
 import { Eye, EyeOff } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { signIn } from "../store/authThunk";
 
 function Login() {
@@ -16,8 +16,6 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const dispatch = useDispatch();
-  // const history = useHistory();
-  // const { user } = useSelector((s) => s.auth);
 
   const onSubmit = async (e) => {
     e.preventDefault();

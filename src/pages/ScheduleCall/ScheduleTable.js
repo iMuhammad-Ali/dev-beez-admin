@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 
 // import CTA from "../components/CTA";
-import InfoCard from "../components/Cards/InfoCard";
-import ChartCard from "../components/Chart/ChartCard";
+import InfoCard from "../../components/Cards/InfoCard";
+import ChartCard from "../../components/Chart/ChartCard";
 import { Doughnut, Line } from "react-chartjs-2";
-import ChartLegend from "../components/Chart/ChartLegend";
-import PageTitle from "../components/Typography/PageTitle";
-import { ChatIcon, CartIcon, MoneyIcon, PeopleIcon } from "../icons";
-import RoundIcon from "../components/RoundIcon";
+import ChartLegend from "../../components/Chart/ChartLegend";
+import PageTitle from "../../components/Typography/PageTitle";
+import { ChatIcon, CartIcon, MoneyIcon, PeopleIcon } from "../../icons";
+import RoundIcon from "../../components/RoundIcon";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchClients, deleteClient } from "../store/clientThunk";
-import data from "../utils/demo/tableData";
+import { fetchClients, deleteClient } from "../../store/clientThunk";
+import data from "../../utils/demo/tableData";
 import {
   TableBody,
   TableContainer,
@@ -24,16 +24,16 @@ import {
   Pagination,
   Button,
 } from "@windmill/react-ui";
-import Modals from "./Modals";
+import Modals from "../../pages/Modals";
 
 import {
   doughnutOptions,
   lineOptions,
   doughnutLegends,
   lineLegends,
-} from "../utils/demo/chartsData";
+} from "../../utils/demo/chartsData";
 
-function Dashboard() {
+function ScheduleCall() {
   const [page, setPage] = useState(1);
   const clients = useSelector((s) => s.client.items || []);
   const [dataa, setData] = useState([]);
@@ -73,12 +73,12 @@ function Dashboard() {
   }, [dispatch]);
   return (
     <>
-      <PageTitle>Dashboard</PageTitle>
+      <PageTitle>Schedule Call</PageTitle>
 
       {/* <CTA /> */}
 
       {/* <!-- Cards --> */}
-      <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+      {/* <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
         <InfoCard title="Total clients" value="6389">
           <RoundIcon
             icon={PeopleIcon}
@@ -114,7 +114,7 @@ function Dashboard() {
             className="mr-4"
           />
         </InfoCard>
-      </div>
+      </div> */}
 
       <TableContainer>
         <Table>
@@ -132,7 +132,7 @@ function Dashboard() {
             {data
               .slice((page - 1) * resultsPerPage, page * resultsPerPage)
               .map((user, i) => (
-                <TableRow key={i}>
+                <TableRow key={i} className="hover:bg-gray-100">
                   <TableCell>
                     <div className="flex items-center text-sm">
                       <div>
@@ -147,7 +147,7 @@ function Dashboard() {
                     <span className="text-sm">$ {user.amount}</span>
                   </TableCell>
                   <TableCell>
-                    <Badge type={user.status}>{user.status}</Badge>
+                    <Badge type={user.status}>Pending</Badge>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">
@@ -176,12 +176,12 @@ function Dashboard() {
           </TableBody>
         </Table>
         <TableFooter>
-          <Pagination
+          {/* <Pagination
             totalResults={totalResults}
             resultsPerPage={resultsPerPage}
             label="Table navigation"
             onChange={onPageChange}
-          />
+          /> */}
         </TableFooter>
       </TableContainer>
 
@@ -240,4 +240,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default ScheduleCall;

@@ -36,9 +36,7 @@ function Modals({
                 >
                   Delete
                 </Button>
-              ) : (
-                <Button>Accept</Button>
-              )}
+              ) : null}
             </div>
             <div className="block w-full sm:hidden">
               <Button block size="large" layout="outline" onClick={onClose}>
@@ -49,13 +47,11 @@ function Modals({
               {mode === "delete" ? (
                 <Button
                   style={{ backgroundColor: "#ef4444" }}
-                  className="text-white hover:bg-red-600"
+                  className="text-white w-full hover:bg-red-600"
                 >
                   Delete
                 </Button>
-              ) : (
-                <Button>Accept</Button>
-              )}
+              ) : null}
             </div>
           </ModalFooter>
         ) : null}
