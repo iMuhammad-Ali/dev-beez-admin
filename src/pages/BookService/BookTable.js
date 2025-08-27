@@ -6,7 +6,7 @@ import ChartCard from "../../components/Chart/ChartCard";
 import { Doughnut, Line } from "react-chartjs-2";
 import ChartLegend from "../../components/Chart/ChartLegend";
 import PageTitle from "../../components/Typography/PageTitle";
-import { ChatIcon, CartIcon, MoneyIcon, PeopleIcon } from "../../icons";
+import { SearchIcon } from "../../icons";
 import RoundIcon from "../../components/RoundIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchClients, deleteClient } from "../../store/clientThunk";
@@ -23,7 +23,9 @@ import {
   Badge,
   Pagination,
   Button,
+  Input,
 } from "@windmill/react-ui";
+import { setFilter } from "../../store/clientSlice";
 import Modals from "../../pages/Modals";
 
 import {
@@ -36,6 +38,7 @@ import {
 function BookService() {
   const [page, setPage] = useState(1);
   const clients = useSelector((s) => s.client.items || []);
+  const filter = useSelector((s) => s.client.filter || "all");
   const [dataa, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -115,7 +118,31 @@ function BookService() {
           />
         </InfoCard>
       </div> */}
-
+      {/* <!-- Search input + Filter --> */}
+      <div className="flex items-center mb-2 space-x-2">
+        <div className="relative flex-1 focus-within:text-purple-500">
+          <div className="absolute inset-y-0 flex items-center pl-2">
+            <SearchIcon className="w-4 h-4" aria-hidden="true" />
+          </div>
+          <Input
+            className="pl-8 text-gray-700"
+            placeholder="Search for projects"
+            aria-label="Search"
+          />
+        </div>
+        <div>
+          <select
+            className="form-select block w-40 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm leading-5 text-gray-700"
+            value={filter}
+            onChange={(e) => dispatch(setFilter(e.target.value))}
+            aria-label="Filter clients"
+          >
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
       <TableContainer>
         <Table>
           <TableHeader>

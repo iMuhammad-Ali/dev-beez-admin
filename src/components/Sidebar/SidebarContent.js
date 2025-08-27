@@ -31,10 +31,14 @@ function SidebarContent() {
     <div className="py-4 h-full relative text-gray-500 dark:text-gray-400">
       <NavLink
         to="/app/dashboard"
-        className="w-full flex justify-center text-lg font-bold text-gray-800 dark:text-gray-200"
+        className="w-full flex items-center justify-center text-lg font-bold text-gray-800 dark:text-gray-200"
       >
-        <img src={logo} alt="Logo" className="w-8 h-8 hidden dark:block" />
-        <img src={lightlogo} alt="Logo" className="w-8 h-8 dark:hidden block" />
+        <img src={logo} alt="Logo" className="w-12 h-12 hidden dark:block" />
+        <img
+          src={lightlogo}
+          alt="Logo"
+          className="w-12 h-12 dark:hidden block"
+        />
         <span>Dev Beez</span>
       </NavLink>
       <ul className="mt-6 gap-5">
