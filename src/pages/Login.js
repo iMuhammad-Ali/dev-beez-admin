@@ -1,5 +1,5 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+// import { useHistory } from "react-router-dom";
 import { useState } from "react";
 
 import ImageLight from "../assets/img/login-office.jpeg";
@@ -13,22 +13,24 @@ function Login() {
   const [show, setShow] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const dispatch = useDispatch();
-  const history = useHistory();
-  const { status, error, user } = useSelector((s) => s.auth);
+  // const history = useHistory();
+  // const { user } = useSelector((s) => s.auth);
 
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       await dispatch(signIn({ email, password })).unwrap();
+      setLoading(false);
     } catch (err) {
-      // error is handled in slice state
+      setError("Login failed");
+      setLoading(false);
+      console.log(err);
     }
   };
-
-  if (user) {
-    history.push("/app");
-  }
 
   return (
     <div className="flex items-center min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
@@ -96,9 +98,9 @@ function Login() {
                 className="mt-4"
                 block
                 type="submit"
-                disabled={status === "loading" ? true : false}
+                disabled={!loading ? false : true}
               >
-                {status === "loading" ? "Loading..." : "Log in"}
+                {loading ? "Loading..." : "Log in"}
               </Button>
             </form>
           </main>

@@ -1,7 +1,7 @@
 import React from "react";
-import { useState } from "react";
+
 import routes from "../../routes/sidebar";
-import { NavLink, Route } from "react-router-dom";
+import { NavLink, Route, useHistory } from "react-router-dom";
 import * as Icons from "../../icons";
 import SidebarSubmenu from "./SidebarSubmenu";
 // import { Avatar, Dropdown, DropdownItem } from "@windmill/react-ui";
@@ -15,12 +15,22 @@ function Icon({ icon, ...props }) {
 }
 
 function SidebarContent() {
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  // const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   // function handleProfileClick() {
   //   setIsProfileMenuOpen(!isProfileMenuOpen);
   // }
+  const history = useHistory();
   const dispatch = useDispatch();
+  const handleSignOut = async () => {
+    try {
+      await dispatch(signOut()).unwrap();
+      // history.push("/login");
+    } catch (error) {
+      console.error("Failed to sign out:", error);
+    }
+  };
+
   return (
     <div className="py-4 h-full relative text-gray-500 dark:text-gray-400">
       <NavLink
@@ -62,7 +72,7 @@ function SidebarContent() {
       <div className="absolute bottom-0 w-full px-6 pb-4">
         <button
           className="rounded-md flex justify-center text-sm py-2 w-full mb-5 text-white bg-red-500 hover:bg-red-600"
-          onClick={() => dispatch(signOut())}
+          onClick={() => handleSignOut()}
           aria-label="Account"
           aria-haspopup="true"
         >

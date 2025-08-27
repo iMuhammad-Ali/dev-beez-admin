@@ -10,6 +10,7 @@ import { ChatIcon, CartIcon, MoneyIcon, PeopleIcon } from "../icons";
 import RoundIcon from "../components/RoundIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchClients, deleteClient } from "../store/clientThunk";
+import data from "../utils/demo/tableData";
 import {
   TableBody,
   TableContainer,
@@ -128,7 +129,7 @@ function Dashboard() {
             </tr>
           </TableHeader>
           <TableBody>
-            {clients
+            {data
               .slice((page - 1) * resultsPerPage, page * resultsPerPage)
               .map((user, i) => (
                 <TableRow key={i}>
