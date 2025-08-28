@@ -15,11 +15,12 @@ function Modals({
   header = null,
   body = null,
   mode = null, // "detail" or "delete"
+  onConfirm = () => {},
 }) {
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalHeader>{header}</ModalHeader>
+      <Modal isOpen={isOpen} onClose={onClose} onConfirm={onConfirm}>
+        <ModalHeader className="-mt-4 font-bold mb-4">{header}</ModalHeader>
         <ModalBody>{body}</ModalBody>
         {mode ? (
           <ModalFooter>
@@ -33,6 +34,7 @@ function Modals({
                 <Button
                   style={{ backgroundColor: "#ef4444" }}
                   className="text-white hover:bg-red-600"
+                  onClick={onConfirm}
                 >
                   Delete
                 </Button>
@@ -48,6 +50,7 @@ function Modals({
                 <Button
                   style={{ backgroundColor: "#ef4444" }}
                   className="text-white w-full hover:bg-red-600"
+                  onClick={onConfirm}
                 >
                   Delete
                 </Button>

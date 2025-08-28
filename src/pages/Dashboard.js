@@ -6,11 +6,18 @@ import ChartCard from "../components/Chart/ChartCard";
 import { Doughnut, Line } from "react-chartjs-2";
 import ChartLegend from "../components/Chart/ChartLegend";
 import PageTitle from "../components/Typography/PageTitle";
-import { ChatIcon, CartIcon, MoneyIcon, PeopleIcon } from "../icons";
+import {
+  ChatIcon,
+  CartIcon,
+  MoneyIcon,
+  PeopleIcon,
+  SearchIcon,
+} from "../icons";
 import RoundIcon from "../components/RoundIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchClients, deleteClient } from "../store/clientThunk";
-import data from "../utils/demo/tableData";
+import { setFilter } from "../store/clientSlice";
+import dataa from "../utils/demo/tableData";
 import {
   TableBody,
   TableContainer,
@@ -23,6 +30,7 @@ import {
   Badge,
   Pagination,
   Button,
+  Input,
 } from "@windmill/react-ui";
 import Modals from "./Modals";
 
@@ -34,13 +42,13 @@ import {
 } from "../utils/demo/chartsData";
 
 function Dashboard() {
-  const [page, setPage] = useState(1);
   const clients = useSelector((s) => s.client.items || []);
-  const [dataa, setData] = useState([]);
+  const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modelMode, setModelMode] = useState(null); // "detail" or "delete"
   const dispatch = useDispatch();
+  const filter = useSelector((s) => s.client.filter || "all");
 
   function openModal(user, mode) {
     setSelectedUser(user);
@@ -53,24 +61,23 @@ function Dashboard() {
     setSelectedUser(null);
   }
 
-  // pagination setup
+  // load-more setup
   const resultsPerPage = 10;
-  const totalResults = clients.length;
+  const [visibleCount, setVisibleCount] = useState(resultsPerPage);
 
-  // pagination change control
-  function onPageChange(p) {
-    setPage(p);
-  }
+  // compute filtered clients according to Redux filter
+  const filteredClients = dataa.filter((client) => {
+    if (!filter || filter === "all") return true;
+    return String(client.status || "").toLowerCase() === filter.toLowerCase();
+  });
 
-  // on page change, load new sliced data
-  // here you would make another server request for new data
+  const totalResults = filteredClients.length;
+
+  // compute visible slice based on filtered clients and visibleCount
   useEffect(() => {
-    setData(clients.slice((page - 1) * resultsPerPage, page * resultsPerPage));
-  }, [page, clients]);
+    setData(filteredClients.slice(0, visibleCount));
+  }, [dataa, visibleCount]);
 
-  useEffect(() => {
-    dispatch(fetchClients());
-  }, [dispatch]);
   return (
     <>
       <PageTitle>Dashboard</PageTitle>
@@ -115,6 +122,31 @@ function Dashboard() {
           />
         </InfoCard>
       </div>
+      {/* <!-- Search input + Filter --> */}
+      <div className="flex items-center mb-2 space-x-2">
+        <div className="relative flex-1 focus-within:text-purple-500">
+          <div className="absolute inset-y-0 flex items-center pl-2">
+            <SearchIcon className="w-4 h-4" aria-hidden="true" />
+          </div>
+          <Input
+            className="pl-8 text-gray-700"
+            placeholder="Search for projects"
+            aria-label="Search"
+          />
+        </div>
+        <div>
+          <select
+            className="form-select block w-40 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm leading-5 text-gray-700"
+            value={filter}
+            onChange={(e) => dispatch(setFilter(e.target.value))}
+            aria-label="Filter clients"
+          >
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
 
       <TableContainer>
         <Table>
@@ -129,59 +161,60 @@ function Dashboard() {
             </tr>
           </TableHeader>
           <TableBody>
-            {data
-              .slice((page - 1) * resultsPerPage, page * resultsPerPage)
-              .map((user, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <div className="flex items-center text-sm">
-                      <div>
-                        <p className="font-semibold">{user.name}</p>
-                      </div>
+            {data.map((user, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <div className="flex items-center text-sm">
+                    <div>
+                      <p className="font-semibold">{user.name}</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">$ {user.amount}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">$ {user.amount}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge type={user.status}>{user.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">
-                      {new Date(user.date).toLocaleDateString()}
-                    </span>
-                  </TableCell>
-                  <TableCell className="flex items-center space-x-2">
-                    <Button
-                      size="small"
-                      onClick={() => openModal(user, "detail")}
-                    >
-                      Detail
-                    </Button>
-                    <Button
-                      size="small"
-                      aria-label="Delete"
-                      style={{ backgroundColor: "#ef4444" }}
-                      className="text-white hover:bg-red-600"
-                      onClick={() => openModal(user, "delete")}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">$ {user.amount}</span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">$ {user.amount}</span>
+                </TableCell>
+                <TableCell>
+                  <Badge type={user.status}>{user.status}</Badge>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">
+                    {new Date(user.date).toLocaleDateString()}
+                  </span>
+                </TableCell>
+                <TableCell className="flex items-center space-x-2">
+                  <Button
+                    size="small"
+                    onClick={() => openModal(user, "detail")}
+                  >
+                    Detail
+                  </Button>
+                  <Button
+                    size="small"
+                    aria-label="Delete"
+                    style={{ backgroundColor: "#ef4444" }}
+                    className="text-white hover:bg-red-600"
+                    onClick={() => openModal(user, "delete")}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
         <TableFooter>
-          <Pagination
-            totalResults={totalResults}
-            resultsPerPage={resultsPerPage}
-            label="Table navigation"
-            onChange={onPageChange}
-          />
+          <div className="w-full flex justify-center py-4">
+            <Button
+              size="small"
+              disabled={data.length >= totalResults}
+              onClick={() => setVisibleCount((v) => v + resultsPerPage)}
+            >
+              {data.length >= totalResults ? "No more" : "Load more"}
+            </Button>
+          </div>
         </TableFooter>
       </TableContainer>
 
@@ -210,18 +243,18 @@ function Dashboard() {
           )
         }
         mode={modelMode}
-        onConfirm={async () => {
-          if (modelMode === "delete" && selectedUser) {
-            await dispatch(deleteClient(selectedUser.id));
-            closeModal();
-            // ensure page index stays valid
-            if ((page - 1) * resultsPerPage >= clients.length - 1 && page > 1) {
-              setPage((p) => p - 1);
-            }
-          } else {
-            closeModal();
-          }
-        }}
+        // onConfirm={async () => {
+        //   if (modelMode === "delete" && selectedUser) {
+        //     await dispatch(deleteClient(selectedUser.id));
+        //     closeModal();
+        //     // ensure page index stays valid
+        //     if ((page - 1) * resultsPerPage >= clients.length - 1 && page > 1) {
+        //       setPage((p) => p - 1);
+        //     }
+        //   } else {
+        //     closeModal();
+        //   }
+        // }}
       />
 
       <PageTitle>Charts</PageTitle>

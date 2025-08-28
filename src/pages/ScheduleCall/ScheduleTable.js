@@ -1,16 +1,9 @@
-import React, { useState, useEffect } from "react";
-
-// import CTA from "../components/CTA";
-import InfoCard from "../../components/Cards/InfoCard";
-import ChartCard from "../../components/Chart/ChartCard";
-import { Doughnut, Line } from "react-chartjs-2";
-import ChartLegend from "../../components/Chart/ChartLegend";
+import React, { useMemo, useState, useEffect } from "react";
 import PageTitle from "../../components/Typography/PageTitle";
 import { SearchIcon } from "../../icons";
-import RoundIcon from "../../components/RoundIcon";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchClients, deleteClient } from "../../store/clientThunk";
-import data from "../../utils/demo/tableData";
+import { deleteClient } from "../../store/clientThunk";
+import { setFilter } from "../../store/clientSlice";
 import {
   TableBody,
   TableContainer,
@@ -19,65 +12,66 @@ import {
   TableCell,
   TableRow,
   TableFooter,
-  Avatar,
   Badge,
-  Pagination,
   Button,
   Input,
 } from "@windmill/react-ui";
 import Modals from "../../pages/Modals";
-import { setFilter } from "../../store/clientSlice";
 
-import {
-  doughnutOptions,
-  lineOptions,
-  doughnutLegends,
-  lineLegends,
-} from "../../utils/demo/chartsData";
-
-function ScheduleCall() {
-  const [page, setPage] = useState(1);
-  const clients = useSelector((s) => s.client.items || []);
-  const filter = useSelector((s) => s.client.filter || "all");
-  const [dataa, setData] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [modelMode, setModelMode] = useState(null); // "detail" or "delete"
+function ScheduleCall({ filteredData = [], onLoadMore }) {
   const dispatch = useDispatch();
+  const filter = useSelector((s) => s.client.filter || "all");
+  const meta = useSelector((s) => s.client.meta.schedule_calls);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const truncate = (t, n = 8) => {
+    if (!t && t !== 0) return "—";
+    const s = String(t);
+    return s.length > n ? s.slice(0, n) + "..." : s;
+  };
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [modelMode, setModelMode] = useState(null);
+
+  const resultsPerPage = 10;
+  const totalResults = filteredData.length;
+
+  // visible count for "Load more"
+  const [visibleCount, setVisibleCount] = useState(resultsPerPage);
+
+  const visibleData = useMemo(
+    () => filteredData.slice(0, visibleCount),
+    [filteredData, visibleCount]
+  );
 
   function openModal(user, mode) {
     setSelectedUser(user);
     setModelMode(mode);
     setIsModalOpen(true);
   }
-
   function closeModal() {
     setIsModalOpen(false);
     setSelectedUser(null);
   }
 
-  // pagination setup
-  const resultsPerPage = 10;
-  const totalResults = clients.length;
+  const fmtDate = (d) => {
+    if (!d) return "—";
+    const date = typeof d?.toDate === "function" ? d.toDate() : new Date(d);
+    return isNaN(date) ? "—" : date.toLocaleDateString();
+  };
 
-  // pagination change control
-  function onPageChange(p) {
-    setPage(p);
-  }
+  const getMoreData = () => {
+    setLoading(true);
+    onLoadMore();
+    setVisibleCount((c) => c + resultsPerPage);
+    setLoading(false);
+  };
 
-  // on page change, load new sliced data
-  // here you would make another server request for new data
-  useEffect(() => {
-    setData(clients.slice((page - 1) * resultsPerPage, page * resultsPerPage));
-  }, [page, clients]);
-
-  useEffect(() => {
-    dispatch(fetchClients());
-  }, [dispatch]);
   return (
     <>
       <PageTitle>Schedule Call</PageTitle>
-      {/* <!-- Search input + Filter --> */}
+
       <div className="flex items-center mb-2 space-x-2">
         <div className="relative flex-1 focus-within:text-purple-500">
           <div className="absolute inset-y-0 flex items-center pl-2">
@@ -109,37 +103,57 @@ function ScheduleCall() {
             <tr>
               <TableCell>Client</TableCell>
               <TableCell>Email</TableCell>
+              <TableCell>Phone Number</TableCell>
               <TableCell>Message</TableCell>
+              <TableCell>File</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Date</TableCell>
               <TableCell>Action</TableCell>
             </tr>
           </TableHeader>
+
           <TableBody>
-            {data
-              .slice((page - 1) * resultsPerPage, page * resultsPerPage)
-              .map((user, i) => (
-                <TableRow key={i} className="hover:bg-gray-100">
+            {visibleData.map((user, i) => {
+              const firstFile =
+                Array.isArray(user.attachments) && user.attachments[0];
+              const status = (user.status || "PENDING").toString();
+              return (
+                <TableRow key={user.id || i} className="hover:bg-gray-100">
                   <TableCell>
-                    <div className="flex items-center text-sm">
-                      <div>
-                        <p className="font-semibold">{user.name}</p>
-                      </div>
-                    </div>
+                    <p className="font-semibold">{user.fullName || "—"}</p>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm">$ {user.amount}</span>
+                    <span className="text-sm">{user.email || "—"}</span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm">$ {user.amount}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge type={user.status}>Pending</Badge>
+                    <span className="text-sm">{user.phoneNumber || "—"}</span>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">
-                      {new Date(user.date).toLocaleDateString()}
+                      {truncate(user.projectDetails, 10)}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    {firstFile ? (
+                      <a
+                        className="text-sm underline"
+                        href={firstFile.url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {truncate(firstFile.name, 10)}
+                      </a>
+                    ) : (
+                      <span className="text-sm">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge type={status === "PENDING" ? "warning" : "success"}>
+                      {status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{fmtDate(user.createdAt)}</span>
                   </TableCell>
                   <TableCell className="flex items-center space-x-2">
                     <Button
@@ -159,38 +173,110 @@ function ScheduleCall() {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+            })}
           </TableBody>
         </Table>
+
         <TableFooter>
-          {/* <Pagination
-            totalResults={totalResults}
-            resultsPerPage={resultsPerPage}
-            label="Table navigation"
-            onChange={onPageChange}
-          /> */}
+          <div className="w-full flex justify-center py-4">
+            <Button
+              size="small"
+              disabled={loading || !meta.hasMore}
+              onClick={() => getMoreData()}
+            >
+              {loading ? "Loading..." : meta.hasMore ? "Load more" : "No more"}
+            </Button>
+          </div>
         </TableFooter>
       </TableContainer>
 
-      {/* Controlled modal for user details */}
       <Modals
         isOpen={isModalOpen}
         onClose={closeModal}
-        header={modelMode === "delete" ? "Delete User" : "User Details"}
+        header={modelMode === "delete" ? "Delete Entry" : "Entry Details"}
         body={
           modelMode === "delete" ? (
             <div>
               <p>
                 Are you sure you want to delete{" "}
-                <strong>{selectedUser?.name}</strong>?
+                <strong>{selectedUser?.fullName}</strong>?
               </p>
             </div>
           ) : selectedUser ? (
-            <div>
-              <p className="font-medium">Job: {selectedUser.job}</p>
-              <p>Amount: $ {selectedUser.amount}</p>
-              <p>Status: {selectedUser.status}</p>
-              <p>Date: {new Date(selectedUser.date).toLocaleDateString()}</p>
+            <div className=" grid grid-cols-1 md:grid-cols-2">
+              <div>
+                {" "}
+                <div>
+                  <p className="text-xs text-gray-500">Name</p>
+                  <p className="font-medium text-gray-900">
+                    {selectedUser.fullName || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="text-sm text-gray-700">
+                    {selectedUser.email || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Phone</p>
+                  <p className="text-sm text-gray-700">
+                    {selectedUser.phoneNumber || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Company</p>
+                  <p className="text-sm text-gray-700">
+                    {selectedUser.companyName || "—"}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <div>
+                  <p className="text-xs text-gray-500">Message</p>
+                  <pre className="whitespace-pre-wrap break-words break-all text-sm text-gray-800 bg-gray-50 p-2 rounded">
+                    {selectedUser.projectDetails || "—"}
+                  </pre>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Status</p>
+                  <Badge
+                    type={
+                      selectedUser.status === "PENDING" ? "warning" : "success"
+                    }
+                  >
+                    {selectedUser.status || "—"}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Date</p>
+                  <p className="text-sm text-gray-700">
+                    {fmtDate(selectedUser.createdAt)}
+                  </p>
+                </div>
+
+                {selectedUser.attachments &&
+                  selectedUser.attachments.length > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-500">Attachments</p>
+                      <ul className="mt-1 space-y-1">
+                        {selectedUser.attachments.map((a, idx) => (
+                          <li key={idx}>
+                            <a
+                              href={a.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-blue-600 underline"
+                            >
+                              {a.name}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+              </div>
             </div>
           ) : (
             <div>No details</div>
@@ -198,31 +284,22 @@ function ScheduleCall() {
         }
         mode={modelMode}
         onConfirm={async () => {
-          if (modelMode === "delete" && selectedUser) {
-            await dispatch(deleteClient(selectedUser.id));
+          if (selectedUser) {
+            // delete from schedule_calls
+            await dispatch(
+              deleteClient({ table: "schedule_calls", id: selectedUser.id })
+            );
             closeModal();
-            // ensure page index stays valid
-            if ((page - 1) * resultsPerPage >= clients.length - 1 && page > 1) {
-              setPage((p) => p - 1);
+            // keep visibleCount valid after deletion
+            const newTotal = filteredData.length - 1;
+            if (visibleCount > newTotal) {
+              setVisibleCount(Math.max(resultsPerPage, newTotal));
             }
           } else {
             closeModal();
           }
         }}
       />
-
-      <PageTitle>Charts</PageTitle>
-      <div className="grid gap-6 mb-8 md:grid-cols-2">
-        <ChartCard title="Revenue">
-          <Doughnut {...doughnutOptions} />
-          <ChartLegend legends={doughnutLegends} />
-        </ChartCard>
-
-        <ChartCard title="Traffic">
-          <Line {...lineOptions} />
-          <ChartLegend legends={lineLegends} />
-        </ChartCard>
-      </div>
     </>
   );
 }
